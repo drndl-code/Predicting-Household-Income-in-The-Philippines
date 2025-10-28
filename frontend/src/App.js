@@ -101,7 +101,10 @@ function App() {
       {result && (
         <div className="mt-8 bg-white/80 border border-blue-100 p-8 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col items-center animate-fade-in">
           <h2 className="text-2xl font-extrabold mb-4 text-blue-800">Predicted Income:</h2>
-          <div className="text-3xl font-bold text-green-600 mb-6">₱{result.predicted_income.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-green-600 mb-2">₱{result.predicted_income.toLocaleString()}</div>
+          {typeof result.prediction_std === "number" && (
+            <div className="text-sm text-blue-800 mb-4">≈ ± ₱{Math.round((result.prediction_std || 0)).toLocaleString()} (uncertainty)</div>
+          )}
           <h3 className="font-semibold mb-3 text-blue-700">Top Features</h3>
           <div className="w-full">
             <Bar
@@ -110,7 +113,7 @@ function App() {
                 datasets: [
                   {
                     label: "Feature Importance (relative)",
-                    data: [1, 0.8, 0.6], // Placeholder, replace with actual importances if available
+                    data: result.feature_importances || [1, 0.8, 0.6],
                     backgroundColor: ["#2563eb", "#38bdf8", "#a7f3d0"]
                   }
                 ]

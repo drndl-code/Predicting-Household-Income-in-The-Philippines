@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import pandas as pd
 import numpy as np
 import joblib
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 app = FastAPI()
 
@@ -42,6 +42,8 @@ class PredictRequest(BaseModel):
 class PredictResponse(BaseModel):
     predicted_income: float
     important_features: List[str]
+    feature_importances: Optional[List[float]] = None  # relative importances aligned with important_features
+    prediction_std: Optional[float] = None  # per-instance std across trees (if available)
 
 @app.on_event("startup")
 def load_model():
@@ -96,26 +98,62 @@ def predict_income(data: PredictRequest):
         print("Received input_df:")
         print(input_df)
         if pipeline is not None:
-            pred = pipeline.predict(input_df)[0]
-            # Extract top features if available
+            # Prediction
+            pred = float(pipeline.predict(input_df)[0])
+
+            # Compute global feature importances mapped to names
+            top_features = ["Region", "Total Food Expenditure", "Education Expenditure"]
+            top_scores: Optional[List[float]] = None
             try:
-                importances = pipeline.named_steps["model"].feature_importances_
+                model = pipeline.named_steps["model"]
                 pre = pipeline.named_steps["preprocessor"]
+                importances = getattr(model, "feature_importances_", None)
+                feat_names = []
                 try:
                     feat_names = list(pre.get_feature_names_out())
                 except Exception:
                     feat_names = feature_names or []
-                order = np.argsort(importances)[::-1][:3]
-                top_features = [feat_names[i] if i < len(feat_names) else f"f{i}" for i in order]
+                if importances is not None and len(importances) == len(feat_names) and len(importances) > 0:
+                    order = np.argsort(importances)[::-1][:3]
+                    top_features = [feat_names[i] for i in order]
+                    # normalize to [0,1] by max for display
+                    max_imp = float(importances[order[0]]) if importances[order[0]] != 0 else 1.0
+                    top_scores = [float(importances[i]) / max_imp for i in order]
             except Exception:
-                top_features = ["Region", "Total Food Expenditure", "Education Expenditure"]
+                pass
+
+            # Estimate prediction uncertainty via per-tree std if available (RandomForest)
+            pred_std = None
+            try:
+                # Transform once
+                Xtr = pipeline.named_steps["preprocessor"].transform(input_df)
+                trees = getattr(model, "estimators_", None)
+                if trees:
+                    tree_preds = np.array([est.predict(Xtr)[0] for est in trees])
+                    pred_std = float(np.std(tree_preds))
+            except Exception:
+                pred_std = None
         else:
             # Legacy path
             X = input_df[feature_names]
-            pred = tree_model.predict(X)[0]
-            importances = tree_model.feature_importances_
-            top_features = [feature_names[i] for i in np.argsort(importances)[::-1][:3]]
-        return PredictResponse(predicted_income=float(pred), important_features=top_features)
+            pred = float(tree_model.predict(X)[0])
+            importances = getattr(tree_model, "feature_importances_", None)
+            top_scores = None
+            if importances is not None and len(importances) == len(feature_names):
+                idx = np.argsort(importances)[::-1][:3]
+                top_features = [feature_names[i] for i in idx]
+                max_imp = float(importances[idx[0]]) if importances[idx[0]] != 0 else 1.0
+                top_scores = [float(importances[i]) / max_imp for i in idx]
+            else:
+                top_features = ["Region", "Total Food Expenditure", "Education Expenditure"]
+            pred_std = None
+
+        return PredictResponse(
+            predicted_income=pred,
+            important_features=top_features,
+            feature_importances=top_scores,
+            prediction_std=pred_std,
+        )
     except Exception as e:
         print("Exception in /predict:", e)
         raise HTTPException(status_code=400, detail=str(e))
