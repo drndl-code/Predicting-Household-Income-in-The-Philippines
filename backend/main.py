@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import joblib
 from typing import List, Dict, Optional
+import json
+import os
 
 app = FastAPI()
 
@@ -30,6 +32,15 @@ def root():
         "service": "predicting-household-income-backend",
         "version": "1.0"
     }
+
+@app.get("/model-info")
+def model_info():
+    """Return training summary and a tiny dataset preview for UI/docs."""
+    path = os.path.join("model", "summary.json")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="summary.json not found. Retrain the model to generate it.")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 class PredictRequest(BaseModel):
     region: str

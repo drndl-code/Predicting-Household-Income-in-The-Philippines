@@ -8,6 +8,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import joblib
 import os
+import json
+from datetime import datetime
 
 # Load dataset
 DATA_PATH = "Family-Income-and-Expenditure.csv"
@@ -98,3 +100,52 @@ if features_cat:
 num_names = features_num
 feat_names = ohe_names + num_names
 joblib.dump(feat_names, "model/feature_names.joblib")
+
+# Save training summary for UI/Docs
+summary = {
+    "dataset_name": "Family Income and Expenditure Survey (FIES)",
+    "dataset_source": "https://www.kaggle.com/datasets/grosvenpaul/family-income-and-expenditure",
+    "target": target_col,
+    "rows": int(len(df_small)),
+    "features_used": features_cat + features_num,
+    "model": {
+        "type": "RandomForestRegressor",
+        "params": {
+            "n_estimators": pipeline.named_steps["model"].n_estimators,
+            "max_depth": pipeline.named_steps["model"].max_depth,
+            "random_state": pipeline.named_steps["model"].random_state,
+        },
+    },
+    "metrics": {
+        "r2": float(r2_score(y_test, pipeline.predict(X_test))),
+        "rmse": float(np.sqrt(mean_squared_error(y_test, pipeline.predict(X_test)))),
+        "mae": float(mean_absolute_error(y_test, pipeline.predict(X_test))),
+        "test_size": 0.3,
+    },
+    "training_time_utc": datetime.utcnow().isoformat() + "Z",
+}
+
+# Top feature importances (global)
+try:
+    importances = pipeline.named_steps["model"].feature_importances_
+    top_k = min(5, len(importances))
+    order = np.argsort(importances)[::-1][:top_k]
+    # Try get names from preprocessor
+    try:
+        all_names = list(pipeline.named_steps["preprocessor"].get_feature_names_out())
+    except Exception:
+        all_names = feat_names
+    summary["top_feature_importances"] = [
+        {"name": (all_names[i] if i < len(all_names) else f"f{i}"), "importance": float(importances[i])}
+        for i in order
+    ]
+except Exception:
+    summary["top_feature_importances"] = []
+
+# Small preview of dataset (only used columns + target)
+preview_cols = [c for c in (features_cat + features_num + [target_col]) if c in df_small.columns]
+summary["preview_columns"] = preview_cols
+summary["preview_rows"] = df_small[preview_cols].head(5).to_dict(orient="records")
+
+with open("model/summary.json", "w", encoding="utf-8") as f:
+    json.dump(summary, f, ensure_ascii=False, indent=2)
