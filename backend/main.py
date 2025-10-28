@@ -23,6 +23,14 @@ tree_model = None  # legacy fallback
 pipeline = None
 feature_names = []
 
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "service": "predicting-household-income-backend",
+        "version": "1.0"
+    }
+
 class PredictRequest(BaseModel):
     region: str
     total_food_expenditure: float

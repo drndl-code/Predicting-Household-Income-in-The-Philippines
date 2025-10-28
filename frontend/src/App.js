@@ -15,6 +15,7 @@ import {
 ChartJS.register(BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
 function App() {
+  const API_URL = process.env.REACT_APP_API_URL || "https://predicting-household-income-in-the.onrender.com";
   const [form, setForm] = useState({
     region: "NCR",
     total_food_expenditure: "",
@@ -36,7 +37,7 @@ function App() {
     setError("");
     setResult(null);
     try {
-  const res = await axios.post("https://unmollifiable-unpollened-allyn.ngrok-free.dev/predict", {
+      const res = await axios.post(`${API_URL}/predict`, {
         ...form,
         total_food_expenditure: parseFloat(form.total_food_expenditure),
         education_expenditure: parseFloat(form.education_expenditure),
