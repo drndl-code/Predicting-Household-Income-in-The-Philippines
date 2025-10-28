@@ -24,6 +24,8 @@ function App() {
     number_of_appliances: ""
   });
   const [result, setResult] = useState(null);
+  const [whatIfForm, setWhatIfForm] = useState(null);
+  const [whatIfResult, setWhatIfResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -45,8 +47,35 @@ function App() {
         number_of_appliances: parseInt(form.number_of_appliances)
       });
       setResult(res.data);
+      // Seed the What-if panel with the submitted values
+      setWhatIfForm({ ...form });
+      setWhatIfResult(null);
     } catch (err) {
       setError(err.response?.data?.detail || "Prediction failed");
+    }
+    setLoading(false);
+  };
+
+  const handleWhatIfChange = (e) => {
+    const { name, value } = e.target;
+    setWhatIfForm((prev) => ({ ...(prev || {}), [name]: value }));
+  };
+
+  const handleSimulate = async () => {
+    if (!whatIfForm) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await axios.post(`${API_URL}/predict`, {
+        ...whatIfForm,
+        total_food_expenditure: parseFloat(whatIfForm.total_food_expenditure),
+        education_expenditure: parseFloat(whatIfForm.education_expenditure),
+        house_floor_area: parseFloat(whatIfForm.house_floor_area),
+        number_of_appliances: parseInt(whatIfForm.number_of_appliances)
+      });
+      setWhatIfResult(res.data);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Simulation failed");
     }
     setLoading(false);
   };
@@ -99,14 +128,14 @@ function App() {
         {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
       </form>
       {result && (
-        <div className="mt-8 bg-white/80 border border-blue-100 p-8 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col items-center animate-fade-in">
+        <div className="mt-8 bg-white/80 border border-blue-100 p-8 rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col items-center animate-fade-in">
           <h2 className="text-2xl font-extrabold mb-4 text-blue-800">Predicted Income:</h2>
           <div className="text-3xl font-bold text-green-600 mb-2">₱{result.predicted_income.toLocaleString()}</div>
           {typeof result.prediction_std === "number" && (
             <div className="text-sm text-blue-800 mb-4">≈ ± ₱{Math.round((result.prediction_std || 0)).toLocaleString()} (uncertainty)</div>
           )}
-          <h3 className="font-semibold mb-3 text-blue-700">Top Features</h3>
-          <div className="w-full">
+          <h3 className="font-semibold mb-3 text-blue-700">Top Drivers</h3>
+          <div className="w-full md:w-3/4">
             <Bar
               data={{
                 labels: result.important_features,
@@ -124,6 +153,63 @@ function App() {
                 scales: { x: { beginAtZero: true, max: 1 } }
               }}
             />
+          </div>
+          {/* Plain-language explainer */}
+          <div className="mt-6 w-full md:w-3/4">
+            <h4 className="font-semibold text-blue-700 mb-2">Why this result?</h4>
+            <ul className="space-y-2 text-sm text-blue-900">
+              {result.important_features.map((name, idx) => {
+                const score = (result.feature_importances && result.feature_importances[idx]) || [1, 0.8, 0.6][idx] || 0;
+                const level = score >= 0.66 ? "High" : score >= 0.33 ? "Medium" : "Low";
+                const levelColor = level === "High" ? "bg-green-100 text-green-800" : level === "Medium" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800";
+                return (
+                  <li key={name} className="flex items-center justify-between bg-white/70 border border-blue-100 rounded-lg px-3 py-2">
+                    <span>{name}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${levelColor}`}>{level} impact</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* What-if panel */}
+          <div className="mt-8 w-full md:w-3/4">
+            <h4 className="font-semibold text-blue-700 mb-3">What if I change the inputs?</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-800">Total Food Expenditure</label>
+                <input type="range" min="0" max="100000" step="500" name="total_food_expenditure" value={whatIfForm?.total_food_expenditure || 0} onChange={handleWhatIfChange} className="w-full" />
+                <div className="text-xs text-blue-700">₱{Number(whatIfForm?.total_food_expenditure || 0).toLocaleString()}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-800">Education Expenditure</label>
+                <input type="range" min="0" max="50000" step="250" name="education_expenditure" value={whatIfForm?.education_expenditure || 0} onChange={handleWhatIfChange} className="w-full" />
+                <div className="text-xs text-blue-700">₱{Number(whatIfForm?.education_expenditure || 0).toLocaleString()}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-800">House Floor Area (sqm)</label>
+                <input type="range" min="10" max="300" step="1" name="house_floor_area" value={whatIfForm?.house_floor_area || 0} onChange={handleWhatIfChange} className="w-full" />
+                <div className="text-xs text-blue-700">{Number(whatIfForm?.house_floor_area || 0)} sqm</div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-800">Number of Appliances</label>
+                <input type="range" min="0" max="30" step="1" name="number_of_appliances" value={whatIfForm?.number_of_appliances || 0} onChange={handleWhatIfChange} className="w-full" />
+                <div className="text-xs text-blue-700">{Number(whatIfForm?.number_of_appliances || 0)} items</div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <button type="button" onClick={handleSimulate} className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 disabled:opacity-60" disabled={loading || !whatIfForm}>
+                {loading ? "Simulating..." : "Simulate"}
+              </button>
+              {whatIfResult && (
+                <div className="text-sm text-blue-900">
+                  New prediction: <span className="font-bold text-green-700">₱{whatIfResult.predicted_income.toLocaleString()}</span>
+                  {result && (
+                    <span> ({whatIfResult.predicted_income - result.predicted_income >= 0 ? "+" : ""}{(whatIfResult.predicted_income - result.predicted_income).toLocaleString()})</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
