@@ -82,7 +82,10 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 via-white to-blue-400 p-4">
-      <h1 className="text-4xl font-extrabold mb-6 text-center text-blue-900 drop-shadow-lg tracking-tight">Predicting Household Income in the Philippines</h1>
+      <h1 className="text-4xl font-extrabold mb-2 text-center text-blue-900 drop-shadow-lg tracking-tight">Predicting Household Income in the Philippines</h1>
+      <div className="mb-6">
+        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">Explainability v1</span>
+      </div>
       <form onSubmit={handleSubmit} className="backdrop-blur-md bg-white/70 border border-blue-100 p-8 rounded-2xl shadow-2xl w-full max-w-lg space-y-6">
         <div>
           <label className="block mb-2 font-semibold text-blue-800">Region</label>
