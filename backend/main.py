@@ -24,6 +24,7 @@ app.add_middleware(
 tree_model = None  # legacy fallback
 pipeline = None
 feature_names = []
+region_value_map = {}  # normalized-key -> actual category string from training
 
 @app.get("/")
 def root():
@@ -58,11 +59,45 @@ class PredictResponse(BaseModel):
 
 @app.on_event("startup")
 def load_model():
-    global pipeline, tree_model, feature_names
+    global pipeline, tree_model, feature_names, region_value_map
     try:
         pipeline = joblib.load("model/pipeline.joblib")
         feature_names = joblib.load("model/feature_names.joblib")
         print("Loaded pipeline for inference.")
+        # Build a normalization map for Region categories based on training values
+        try:
+            pre = pipeline.named_steps["preprocessor"]
+            feat_names = list(pre.get_feature_names_out())
+        except Exception:
+            feat_names = feature_names or []
+
+        def _std_region(s: str) -> str:
+            s = (s or "").strip().lower()
+            # Drop leading 'region ' if present
+            if s.startswith("region "):
+                s = s[len("region "):]
+            # unify iv-a / ivb forms
+            s = s.replace("iv-a", "iva").replace("iv-b", "ivb")
+            # known spelling mismatch in dataset
+            s = s.replace("zamboanga", "zasmboanga")
+            # collapse spaces
+            s = " ".join(s.split())
+            return s
+
+        # Extract actual category strings from OHE names cat__Region_<value>
+        region_values = []
+        for n in feat_names:
+            if n.startswith("cat__Region_"):
+                region_values.append(n.replace("cat__Region_", ""))
+        # Build map
+        region_value_map = {_std_region(v): v for v in region_values}
+        # Also map BARMM/ARMM to training ' ARMM' value if present
+        if _std_region("ARMM") not in region_value_map and region_values:
+            for v in region_values:
+                if v.strip().upper().endswith("ARMM"):
+                    region_value_map[_std_region("ARMM")] = v
+                    region_value_map[_std_region("BARMM")] = v
+                    break
     except Exception:
         print("Pipeline not found, falling back to legacy artifacts if available.")
         try:
@@ -92,7 +127,21 @@ def predict_income(data: PredictRequest):
         model_input: Dict[str, object] = {}
         for k, v in payload.items():
             mapped = key_map.get(k, k)
-            model_input[mapped] = v
+            # Region value normalization against training categories
+            if mapped == "Region":
+                def _std_region(s: str) -> str:
+                    s = (s or "").strip().lower()
+                    if s.startswith("region "):
+                        s = s[len("region "):]
+                    s = s.replace("iv-a", "iva").replace("iv-b", "ivb")
+                    s = s.replace("zamboanga", "zasmboanga")
+                    s = " ".join(s.split())
+                    return s
+                key = _std_region(str(v))
+                v_norm = region_value_map.get(key, v)
+                model_input[mapped] = v_norm
+            else:
+                model_input[mapped] = v
         # Ensure required columns exist (friendly error)
         required_cols = [
             "Region",
