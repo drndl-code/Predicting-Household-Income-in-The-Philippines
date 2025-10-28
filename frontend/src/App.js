@@ -26,6 +26,8 @@ function App() {
   const [result, setResult] = useState(null);
   const [whatIfForm, setWhatIfForm] = useState(null);
   const [whatIfResult, setWhatIfResult] = useState(null);
+  const [modelInfo, setModelInfo] = useState(null);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,6 +56,18 @@ function App() {
       setError(err.response?.data?.detail || "Prediction failed");
     }
     setLoading(false);
+  };
+  const toggleInfo = async () => {
+    const next = !infoOpen;
+    setInfoOpen(next);
+    if (next && !modelInfo) {
+      try {
+        const res = await axios.get(`${API_URL}/model-info`);
+        setModelInfo(res.data);
+      } catch (e) {
+        // best-effort; keep UI resilient
+      }
+    }
   };
 
   const handleWhatIfChange = (e) => {
@@ -238,6 +252,92 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* How the model works */}
+      <div className="mt-10 w-full max-w-3xl">
+        <button onClick={toggleInfo} className="w-full text-left bg-white/80 border border-blue-100 rounded-xl px-4 py-3 shadow flex items-center justify-between">
+          <span className="font-semibold text-blue-800">How this model works (dataset & training)</span>
+          <span className="text-blue-700">{infoOpen ? "▲" : "▼"}</span>
+        </button>
+        {infoOpen && (
+          <div className="p-4 bg-white/70 border border-blue-100 rounded-b-xl shadow">
+            {!modelInfo ? (
+              <div className="text-sm text-blue-700">Loading…</div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-3 bg-white rounded border">
+                    <div className="text-xs text-blue-700">Dataset</div>
+                    <div className="font-semibold">{modelInfo.dataset_name}</div>
+                    <a className="text-xs text-blue-600 underline" href={modelInfo.dataset_source} target="_blank" rel="noreferrer">View on Kaggle</a>
+                  </div>
+                  <div className="p-3 bg-white rounded border">
+                    <div className="text-xs text-blue-700">Rows</div>
+                    <div className="font-semibold">{modelInfo.rows?.toLocaleString?.() || modelInfo.rows}</div>
+                  </div>
+                  <div className="p-3 bg-white rounded border">
+                    <div className="text-xs text-blue-700">Model</div>
+                    <div className="font-semibold">{modelInfo.model?.type}</div>
+                    <div className="text-xs text-blue-700">n_estimators: {modelInfo.model?.params?.n_estimators}, max_depth: {String(modelInfo.model?.params?.max_depth)}</div>
+                  </div>
+                  <div className="p-3 bg-white rounded border">
+                    <div className="text-xs text-blue-700">Test metrics (30%)</div>
+                    <div className="text-xs">R²: <span className="font-semibold">{modelInfo.metrics?.r2?.toFixed?.(3)}</span></div>
+                    <div className="text-xs">RMSE: <span className="font-semibold">₱{Math.round(modelInfo.metrics?.rmse || 0).toLocaleString()}</span></div>
+                    <div className="text-xs">MAE: <span className="font-semibold">₱{Math.round(modelInfo.metrics?.mae || 0).toLocaleString()}</span></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-blue-800 mb-2">Features used</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(modelInfo.features_used || []).map((f) => (
+                      <span key={f} className="text-xs px-2 py-1 bg-blue-50 text-blue-800 rounded border border-blue-100">{f}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {modelInfo.top_feature_importances && modelInfo.top_feature_importances.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-blue-800 mb-2">Global top features</div>
+                    <ul className="text-sm list-disc list-inside text-blue-900">
+                      {modelInfo.top_feature_importances.map((it) => (
+                        <li key={it.name}>{it.name} — {(it.importance * 100).toFixed(1)}%</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {modelInfo.preview_rows && modelInfo.preview_rows.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-blue-800 mb-2">Dataset preview (first 5 rows)</div>
+                    <div className="overflow-auto border rounded">
+                      <table className="min-w-full text-xs">
+                        <thead className="bg-blue-50">
+                          <tr>
+                            {modelInfo.preview_columns.map((c) => (
+                              <th key={c} className="px-2 py-1 text-left text-blue-800 border-b">{c}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {modelInfo.preview_rows.map((row, i) => (
+                            <tr key={i} className="odd:bg-white even:bg-blue-50/30">
+                              {modelInfo.preview_columns.map((c) => (
+                                <td key={c} className="px-2 py-1 border-b">{String(row[c])}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
