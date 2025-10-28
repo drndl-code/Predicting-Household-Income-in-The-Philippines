@@ -32,8 +32,29 @@ if "house_floor_area" not in df.columns:
             df = df.rename(columns={c: "house_floor_area"})
             break
 if "number_of_appliances" not in df.columns:
-    appliance_cols = [c for c in df.columns if "appliance" in c.lower()]
+    # Heuristic 1: explicit curated list of household appliances/electronics
+    candidate_cols = [
+        "Number of Television",
+        "Number of CD/VCD/DVD",
+        "Number of Component/Stereo set",
+        "Number of Refrigerator/Freezer",
+        "Number of Washing Machine",
+        "Number of Airconditioner",
+        "Number of Landline/wireless telephones",
+        "Number of Cellular phone",
+        "Number of Personal Computer",
+        "Number of Stove with Oven/Gas Range",
+    ]
+    appliance_cols = [c for c in candidate_cols if c in df.columns]
+    # Fallback Heuristic 2: any column starting with "Number of " except bedrooms and vehicles
+    if not appliance_cols:
+        exclude_keywords = ["bedroom", "car", "jeep", "van", "motorcycle", "tricycle", "banca"]
+        for c in df.columns:
+            cl = c.lower()
+            if cl.startswith("number of ") and not any(ek in cl for ek in exclude_keywords):
+                appliance_cols.append(c)
     if appliance_cols:
+        df[appliance_cols] = df[appliance_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
         df["number_of_appliances"] = df[appliance_cols].sum(axis=1)
 
 # Keep only training target and UI-driven inputs (drop missing ui fields later by fillna)

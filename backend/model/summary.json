@@ -7,7 +7,8 @@
     "Region",
     "Total Food Expenditure",
     "Education Expenditure",
-    "house_floor_area"
+    "house_floor_area",
+    "number_of_appliances"
   ],
   "model": {
     "type": "RandomForestRegressor",
@@ -18,32 +19,32 @@
     }
   },
   "metrics": {
-    "r2": 0.5267294661917241,
-    "rmse": 190000.4167533749,
-    "mae": 85367.08029652516,
+    "r2": 0.6089704206283135,
+    "rmse": 172704.88665944483,
+    "mae": 74771.79796407456,
     "test_size": 0.3
   },
-  "training_time_utc": "2025-10-28T12:36:29.612111Z",
+  "training_time_utc": "2025-10-28T13:06:45.009341Z",
   "top_feature_importances": [
     {
+      "name": "num__number_of_appliances",
+      "importance": 0.4737765358029044
+    },
+    {
       "name": "num__Total Food Expenditure",
-      "importance": 0.670774978093692
+      "importance": 0.3203504323021154
     },
     {
       "name": "num__Education Expenditure",
-      "importance": 0.13155389220868988
+      "importance": 0.07233595640803667
     },
     {
       "name": "num__house_floor_area",
-      "importance": 0.11569229655440211
+      "importance": 0.060195894486388034
     },
     {
       "name": "cat__Region_VI - Western Visayas",
-      "importance": 0.021833285134294656
-    },
-    {
-      "name": "cat__Region_VIII - Eastern Visayas",
-      "importance": 0.013739460542808328
+      "importance": 0.02497264129494496
     }
   ],
   "preview_columns": [
@@ -51,6 +52,7 @@
     "Total Food Expenditure",
     "Education Expenditure",
     "house_floor_area",
+    "number_of_appliances",
     "Total Household Income"
   ],
   "preview_rows": [
@@ -59,6 +61,7 @@
       "Total Food Expenditure": 117848,
       "Education Expenditure": 36200,
       "house_floor_area": 80,
+      "number_of_appliances": 7,
       "Total Household Income": 480332
     },
     {
@@ -66,6 +69,7 @@
       "Total Food Expenditure": 67766,
       "Education Expenditure": 29300,
       "house_floor_area": 42,
+      "number_of_appliances": 8,
       "Total Household Income": 198235
     },
     {
@@ -73,6 +77,7 @@
       "Total Food Expenditure": 61609,
       "Education Expenditure": 425,
       "house_floor_area": 35,
+      "number_of_appliances": 0,
       "Total Household Income": 82785
     },
     {
@@ -80,6 +85,7 @@
       "Total Food Expenditure": 78189,
       "Education Expenditure": 300,
       "house_floor_area": 30,
+      "number_of_appliances": 2,
       "Total Household Income": 107589
     },
     {
@@ -87,6 +93,7 @@
       "Total Food Expenditure": 94625,
       "Education Expenditure": 0,
       "house_floor_area": 54,
+      "number_of_appliances": 5,
       "Total Household Income": 189322
     }
   ]
