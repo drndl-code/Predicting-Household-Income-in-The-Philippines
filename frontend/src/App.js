@@ -265,6 +265,37 @@ function App() {
               <div className="text-sm text-blue-700">Loading…</div>
             ) : (
               <div className="space-y-4">
+                {/* Pipeline diagram */}
+                <div>
+                  <div className="text-sm font-semibold text-blue-800 mb-2">Training pipeline</div>
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+                    <div className="flex-1 p-3 bg-white rounded border text-center">
+                      <div className="text-xs text-blue-700">Dataset</div>
+                      <div className="font-semibold">FIES CSV</div>
+                    </div>
+                    <div className="hidden md:block text-2xl">→</div>
+                    <div className="flex-1 p-3 bg-white rounded border text-center">
+                      <div className="text-xs text-blue-700">Preprocessing</div>
+                      <div className="font-semibold">OneHot + Scaling</div>
+                    </div>
+                    <div className="hidden md:block text-2xl">→</div>
+                    <div className="flex-1 p-3 bg-white rounded border text-center">
+                      <div className="text-xs text-blue-700">Model</div>
+                      <div className="font-semibold">Random Forest</div>
+                    </div>
+                    <div className="hidden md:block text-2xl">→</div>
+                    <div className="flex-1 p-3 bg-white rounded border text-center">
+                      <div className="text-xs text-blue-700">Prediction</div>
+                      <div className="font-semibold">₱ estimate</div>
+                    </div>
+                    <div className="hidden md:block text-2xl">→</div>
+                    <div className="flex-1 p-3 bg-white rounded border text-center">
+                      <div className="text-xs text-blue-700">Explainability</div>
+                      <div className="font-semibold">Top drivers + Uncertainty</div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-3 bg-white rounded border">
                     <div className="text-xs text-blue-700">Dataset</div>
