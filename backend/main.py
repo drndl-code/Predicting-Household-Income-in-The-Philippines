@@ -126,17 +126,22 @@ def predict_income(data: PredictRequest):
                 except Exception:
                     feat_names = feature_names or []
                 # Humanize feature names for display
+                def _titleize_spaces(s: str) -> str:
+                    s2 = s.replace("_", " ")
+                    return " ".join(w.capitalize() if w else w for w in s2.split(" "))
+
                 def _humanize(name: str) -> str:
                     if name.startswith("num__"):
-                        return name.replace("num__", "")
+                        base = name.replace("num__", "")
+                        return _titleize_spaces(base)
                     if name.startswith("cat__"):
                         raw = name.replace("cat__", "")
                         # Convert OneHot "Region_Label" -> "Region: Label"
                         if "_" in raw:
                             head, tail = raw.split("_", 1)
-                            return f"{head}: {tail}"
-                        return raw
-                    return name
+                            return f"{_titleize_spaces(head)}: {tail}"
+                        return _titleize_spaces(raw)
+                    return _titleize_spaces(name)
 
                 if importances is not None and len(importances) == len(feat_names) and len(importances) > 0:
                     # Per-instance masking for OneHot categories: keep only active category columns
