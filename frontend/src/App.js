@@ -156,7 +156,12 @@ function App() {
           <div className="text-3xl font-bold text-green-600">₱{result.predicted_income.toLocaleString()}</div>
           <div className="text-sm text-blue-800 mb-2">≈ ₱{Math.round(result.predicted_income/12).toLocaleString()} per month</div>
           {typeof result.prediction_std === "number" && (
-            <div className="text-sm text-blue-800 mb-4">≈ ± ₱{Math.round((result.prediction_std || 0)).toLocaleString()} (uncertainty)</div>
+            <div className="mb-4">
+              <div className="text-sm text-blue-800">≈ ± ₱{Math.round((result.prediction_std || 0)).toLocaleString()} (uncertainty)</div>
+              <div className="text-xs text-blue-700/90 mt-1">
+                Uncertainty shows how much the model’s trees disagree for these inputs; larger means less confidence. Units: PHP/year.
+              </div>
+            </div>
           )}
           <h3 className="font-semibold mb-3 text-blue-700">Top Drivers</h3>
           <div className="w-full md:w-3/4">
