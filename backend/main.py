@@ -156,15 +156,20 @@ def predict_income(data: PredictRequest):
                             if fname.startswith("cat__") and float(Xtr[0, i]) == 0.0:
                                 adj_imps[i] = 0.0
 
-                    order = np.argsort(adj_imps)[::-1][:top_k]
-                    names_ordered_raw = [feat_names[i] for i in order]
-                    names_ordered = [_humanize(n) for n in names_ordered_raw]
-                    # normalize to [0,1] by max for display
-                    max_imp = float(adj_imps[order[0]]) if adj_imps[order[0]] != 0 else 1.0
-                    scores = [float(adj_imps[i]) / max_imp for i in order]
-
-                    top_features = names_ordered
-                    top_scores = scores
+                    # Build list of (index, importance) with strictly positive importance after masking
+                    pairs = [(i, adj_imps[i]) for i in range(len(adj_imps)) if adj_imps[i] > 0]
+                    # Sort descending by importance
+                    pairs.sort(key=lambda t: t[1], reverse=True)
+                    # Take up to top_k
+                    sel = pairs[:top_k]
+                    if sel:
+                        idxs = [i for i, _ in sel]
+                        names_ordered_raw = [feat_names[i] for i in idxs]
+                        names_ordered = [_humanize(n) for n in names_ordered_raw]
+                        max_imp = float(max([v for _, v in sel]))
+                        scores = [float(adj_imps[i]) / max_imp if max_imp > 0 else 0.0 for i in idxs]
+                        top_features = names_ordered
+                        top_scores = scores
             except Exception:
                 pass
 

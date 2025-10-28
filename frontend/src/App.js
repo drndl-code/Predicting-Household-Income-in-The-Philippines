@@ -108,20 +108,20 @@ function App() {
           <select name="region" value={form.region} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white">
             <option value="NCR">NCR (National Capital Region)</option>
             <option value="CAR">CAR (Cordillera Administrative Region)</option>
-            <option value="Region I">Region I - Ilocos Region</option>
-            <option value="Region II">Region II - Cagayan Valley</option>
-            <option value="Region III">Region III - Central Luzon</option>
-            <option value="Region IV-A">Region IV-A - CALABARZON</option>
-            <option value="Region IV-B">Region IV-B - MIMAROPA</option>
-            <option value="Region V">Region V - Bicol Region</option>
-            <option value="Region VI">Region VI - Western Visayas</option>
-            <option value="Region VII">Region VII - Central Visayas</option>
-            <option value="Region VIII">Region VIII - Eastern Visayas</option>
-            <option value="Region IX">Region IX - Zamboanga Peninsula</option>
-            <option value="Region X">Region X - Northern Mindanao</option>
-            <option value="Region XI">Region XI - Davao Region</option>
-            <option value="Region XII">Region XII - SOCCSKSARGEN</option>
-            <option value="Region XIII">Region XIII - Caraga</option>
+            <option value="Region I - Ilocos Region">Region I - Ilocos Region</option>
+            <option value="Region II - Cagayan Valley">Region II - Cagayan Valley</option>
+            <option value="Region III - Central Luzon">Region III - Central Luzon</option>
+            <option value="Region IV-A - CALABARZON">Region IV-A - CALABARZON</option>
+            <option value="Region IV-B - MIMAROPA">Region IV-B - MIMAROPA</option>
+            <option value="Region V - Bicol Region">Region V - Bicol Region</option>
+            <option value="Region VI - Western Visayas">Region VI - Western Visayas</option>
+            <option value="Region VII - Central Visayas">Region VII - Central Visayas</option>
+            <option value="Region VIII - Eastern Visayas">Region VIII - Eastern Visayas</option>
+            <option value="Region IX - Zamboanga Peninsula">Region IX - Zamboanga Peninsula</option>
+            <option value="Region X - Northern Mindanao">Region X - Northern Mindanao</option>
+            <option value="Region XI - Davao Region">Region XI - Davao Region</option>
+            <option value="Region XII - SOCCSKSARGEN">Region XII - SOCCSKSARGEN</option>
+            <option value="Region XIII - Caraga">Region XIII - Caraga</option>
             <option value="BARMM">BARMM (Bangsamoro Autonomous Region in Muslim Mindanao)</option>
           </select>
         </div>
