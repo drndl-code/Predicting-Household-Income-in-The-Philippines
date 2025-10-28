@@ -143,7 +143,7 @@ function App() {
         <div>
           <label className="block mb-2 font-semibold text-blue-800">Number of Appliances</label>
           <input type="number" name="number_of_appliances" value={form.number_of_appliances} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
-          <p className="text-xs text-blue-700 mt-1">How many major appliances you own (TV, fridge, washing machine, etc.).</p>
+          <p className="text-xs text-blue-700 mt-1">Count of major appliances you own (TV, fridge, washing machine, etc.). This is a count only—the model doesn’t assume they run 24/7 or measure electricity use.</p>
         </div>
         <button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white py-3 rounded-lg font-bold text-lg shadow-lg hover:from-blue-600 hover:to-cyan-500 transition-all duration-200 disabled:opacity-60" disabled={loading}>
           {loading ? <span className="animate-pulse">Predicting...</span> : "Predict Income"}
@@ -237,6 +237,7 @@ function App() {
                 <label className="block text-sm font-medium text-blue-800">Number of Appliances</label>
                 <input type="range" min="0" max="30" step="1" name="number_of_appliances" value={whatIfForm?.number_of_appliances || 0} onChange={handleWhatIfChange} className="w-full" />
                 <div className="text-xs text-blue-700">{Number(whatIfForm?.number_of_appliances || 0)} items</div>
+                <div className="text-[10px] text-blue-700/80">Count of owned devices only; no 24/7 usage assumption.</div>
               </div>
             </div>
             <div className="mt-4 flex items-center gap-3">
