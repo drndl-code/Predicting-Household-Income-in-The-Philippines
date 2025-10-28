@@ -265,34 +265,53 @@ function App() {
               <div className="text-sm text-blue-700">Loading…</div>
             ) : (
               <div className="space-y-4">
-                {/* Pipeline diagram */}
+                {/* Pipeline diagram (SVG) */}
                 <div>
                   <div className="text-sm font-semibold text-blue-800 mb-2">Training pipeline</div>
-                  <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
-                    <div className="flex-1 p-3 bg-white rounded border text-center">
-                      <div className="text-xs text-blue-700">Dataset</div>
-                      <div className="font-semibold">FIES CSV</div>
-                    </div>
-                    <div className="hidden md:block text-2xl">→</div>
-                    <div className="flex-1 p-3 bg-white rounded border text-center">
-                      <div className="text-xs text-blue-700">Preprocessing</div>
-                      <div className="font-semibold">OneHot + Scaling</div>
-                    </div>
-                    <div className="hidden md:block text-2xl">→</div>
-                    <div className="flex-1 p-3 bg-white rounded border text-center">
-                      <div className="text-xs text-blue-700">Model</div>
-                      <div className="font-semibold">Random Forest</div>
-                    </div>
-                    <div className="hidden md:block text-2xl">→</div>
-                    <div className="flex-1 p-3 bg-white rounded border text-center">
-                      <div className="text-xs text-blue-700">Prediction</div>
-                      <div className="font-semibold">₱ estimate</div>
-                    </div>
-                    <div className="hidden md:block text-2xl">→</div>
-                    <div className="flex-1 p-3 bg-white rounded border text-center">
-                      <div className="text-xs text-blue-700">Explainability</div>
-                      <div className="font-semibold">Top drivers + Uncertainty</div>
-                    </div>
+                  <div className="w-full overflow-x-auto">
+                    <svg role="img" aria-label="Pipeline diagram" viewBox="0 0 1200 160" className="min-w-[700px] w-full h-40">
+                      <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                          <path d="M0,0 L0,6 L9,3 z" fill="#1e40af" />
+                        </marker>
+                        <linearGradient id="box" x1="0" x2="1">
+                          <stop offset="0%" stopColor="#eef2ff" />
+                          <stop offset="100%" stopColor="#e0f2fe" />
+                        </linearGradient>
+                      </defs>
+
+                      {/** Helper to draw a box */}
+                      {/* Dataset */}
+                      <rect x="20" y="30" rx="10" ry="10" width="200" height="80" fill="url(#box)" stroke="#93c5fd" />
+                      <text x="120" y="60" textAnchor="middle" fontSize="12" fill="#1e3a8a">Dataset</text>
+                      <text x="120" y="85" textAnchor="middle" fontSize="14" fontWeight="600" fill="#0f172a">FIES CSV</text>
+
+                      {/* Preprocessing */}
+                      <rect x="260" y="30" rx="10" ry="10" width="230" height="80" fill="url(#box)" stroke="#93c5fd" />
+                      <text x="375" y="60" textAnchor="middle" fontSize="12" fill="#1e3a8a">Preprocessing</text>
+                      <text x="375" y="85" textAnchor="middle" fontSize="14" fontWeight="600" fill="#0f172a">OneHot + Scaling</text>
+
+                      {/* Model */}
+                      <rect x="530" y="30" rx="10" ry="10" width="200" height="80" fill="url(#box)" stroke="#93c5fd" />
+                      <text x="630" y="60" textAnchor="middle" fontSize="12" fill="#1e3a8a">Model</text>
+                      <text x="630" y="85" textAnchor="middle" fontSize="14" fontWeight="600" fill="#0f172a">Random Forest</text>
+
+                      {/* Prediction */}
+                      <rect x="770" y="30" rx="10" ry="10" width="200" height="80" fill="url(#box)" stroke="#93c5fd" />
+                      <text x="870" y="60" textAnchor="middle" fontSize="12" fill="#1e3a8a">Prediction</text>
+                      <text x="870" y="85" textAnchor="middle" fontSize="14" fontWeight="600" fill="#0f172a">₱ estimate</text>
+
+                      {/* Explainability */}
+                      <rect x="1010" y="30" rx="10" ry="10" width="170" height="80" fill="url(#box)" stroke="#93c5fd" />
+                      <text x="1095" y="60" textAnchor="middle" fontSize="12" fill="#1e3a8a">Explainability</text>
+                      <text x="1095" y="85" textAnchor="middle" fontSize="14" fontWeight="600" fill="#0f172a">Top drivers + ±σ</text>
+
+                      {/* Arrows */}
+                      <line x1="220" y1="70" x2="260" y2="70" stroke="#1e40af" strokeWidth="2.5" markerEnd="url(#arrow)" />
+                      <line x1="490" y1="70" x2="530" y2="70" stroke="#1e40af" strokeWidth="2.5" markerEnd="url(#arrow)" />
+                      <line x1="730" y1="70" x2="770" y2="70" stroke="#1e40af" strokeWidth="2.5" markerEnd="url(#arrow)" />
+                      <line x1="970" y1="70" x2="1010" y2="70" stroke="#1e40af" strokeWidth="2.5" markerEnd="url(#arrow)" />
+                    </svg>
                   </div>
                 </div>
 
