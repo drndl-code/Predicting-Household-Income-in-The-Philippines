@@ -125,12 +125,41 @@ def predict_income(data: PredictRequest):
                     feat_names = list(pre.get_feature_names_out())
                 except Exception:
                     feat_names = feature_names or []
+                # Humanize feature names for display
+                def _humanize(name: str) -> str:
+                    if name.startswith("num__"):
+                        return name.replace("num__", "")
+                    if name.startswith("cat__"):
+                        raw = name.replace("cat__", "")
+                        # Convert OneHot "Region_Label" -> "Region: Label"
+                        if "_" in raw:
+                            head, tail = raw.split("_", 1)
+                            return f"{head}: {tail}"
+                        return raw
+                    return name
+
                 if importances is not None and len(importances) == len(feat_names) and len(importances) > 0:
-                    order = np.argsort(importances)[::-1][:top_k]
-                    top_features = [feat_names[i] for i in order]
+                    # Per-instance masking for OneHot categories: keep only active category columns
+                    try:
+                        Xtr = pre.transform(input_df)
+                    except Exception:
+                        Xtr = None
+
+                    adj_imps = np.array(importances, dtype=float).copy()
+                    if Xtr is not None:
+                        for i, fname in enumerate(feat_names):
+                            if fname.startswith("cat__") and float(Xtr[0, i]) == 0.0:
+                                adj_imps[i] = 0.0
+
+                    order = np.argsort(adj_imps)[::-1][:top_k]
+                    names_ordered_raw = [feat_names[i] for i in order]
+                    names_ordered = [_humanize(n) for n in names_ordered_raw]
                     # normalize to [0,1] by max for display
-                    max_imp = float(importances[order[0]]) if importances[order[0]] != 0 else 1.0
-                    top_scores = [float(importances[i]) / max_imp for i in order]
+                    max_imp = float(adj_imps[order[0]]) if adj_imps[order[0]] != 0 else 1.0
+                    scores = [float(adj_imps[i]) / max_imp for i in order]
+
+                    top_features = names_ordered
+                    top_scores = scores
             except Exception:
                 pass
 
