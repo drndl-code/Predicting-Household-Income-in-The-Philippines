@@ -102,6 +102,7 @@ def predict_income(data: PredictRequest):
             pred = float(pipeline.predict(input_df)[0])
 
             # Compute global feature importances mapped to names
+            top_k = 5
             top_features = ["Region", "Total Food Expenditure", "Education Expenditure"]
             top_scores: Optional[List[float]] = None
             try:
@@ -114,7 +115,7 @@ def predict_income(data: PredictRequest):
                 except Exception:
                     feat_names = feature_names or []
                 if importances is not None and len(importances) == len(feat_names) and len(importances) > 0:
-                    order = np.argsort(importances)[::-1][:3]
+                    order = np.argsort(importances)[::-1][:top_k]
                     top_features = [feat_names[i] for i in order]
                     # normalize to [0,1] by max for display
                     max_imp = float(importances[order[0]]) if importances[order[0]] != 0 else 1.0
@@ -140,7 +141,7 @@ def predict_income(data: PredictRequest):
             importances = getattr(tree_model, "feature_importances_", None)
             top_scores = None
             if importances is not None and len(importances) == len(feature_names):
-                idx = np.argsort(importances)[::-1][:3]
+                idx = np.argsort(importances)[::-1][:top_k]
                 top_features = [feature_names[i] for i in idx]
                 max_imp = float(importances[idx[0]]) if importances[idx[0]] != 0 else 1.0
                 top_scores = [float(importances[i]) / max_imp for i in idx]

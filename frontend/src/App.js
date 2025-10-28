@@ -112,18 +112,22 @@ function App() {
         <div>
           <label className="block mb-2 font-semibold text-blue-800">Total Food Expenditure</label>
           <input type="number" name="total_food_expenditure" value={form.total_food_expenditure} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
+          <p className="text-xs text-blue-700 mt-1">Monthly spending on food and groceries for the household.</p>
         </div>
         <div>
           <label className="block mb-2 font-semibold text-blue-800">Education Expenditure</label>
           <input type="number" name="education_expenditure" value={form.education_expenditure} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
+          <p className="text-xs text-blue-700 mt-1">Monthly costs for tuition, fees, books and other school needs.</p>
         </div>
         <div>
           <label className="block mb-2 font-semibold text-blue-800">House Floor Area (sqm)</label>
           <input type="number" name="house_floor_area" value={form.house_floor_area} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
+          <p className="text-xs text-blue-700 mt-1">Approximate size of your home in square meters.</p>
         </div>
         <div>
           <label className="block mb-2 font-semibold text-blue-800">Number of Appliances</label>
           <input type="number" name="number_of_appliances" value={form.number_of_appliances} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
+          <p className="text-xs text-blue-700 mt-1">How many major appliances you own (TV, fridge, washing machine, etc.).</p>
         </div>
         <button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white py-3 rounded-lg font-bold text-lg shadow-lg hover:from-blue-600 hover:to-cyan-500 transition-all duration-200 disabled:opacity-60" disabled={loading}>
           {loading ? <span className="animate-pulse">Predicting...</span> : "Predict Income"}
@@ -152,8 +156,26 @@ function App() {
               }}
               options={{
                 indexAxis: "y",
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, max: 1 } }
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx) => {
+                        const v = ctx.parsed.x;
+                        return ` ${(v * 100).toFixed(0)}% impact`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  x: {
+                    beginAtZero: true,
+                    max: 1,
+                    ticks: {
+                      callback: (val) => `${Math.round(val * 100)}%`
+                    }
+                  }
+                }
               }}
             />
           </div>
