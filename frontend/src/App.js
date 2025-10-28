@@ -43,8 +43,9 @@ function App() {
     try {
       const res = await axios.post(`${API_URL}/predict`, {
         ...form,
-        total_food_expenditure: parseFloat(form.total_food_expenditure),
-        education_expenditure: parseFloat(form.education_expenditure),
+        // UI collects monthly pesos; model expects annual. Auto-convert.
+        total_food_expenditure: parseFloat(form.total_food_expenditure) * 12,
+        education_expenditure: parseFloat(form.education_expenditure) * 12,
         house_floor_area: parseFloat(form.house_floor_area),
         number_of_appliances: parseInt(form.number_of_appliances)
       });
@@ -82,8 +83,9 @@ function App() {
     try {
       const res = await axios.post(`${API_URL}/predict`, {
         ...whatIfForm,
-        total_food_expenditure: parseFloat(whatIfForm.total_food_expenditure),
-        education_expenditure: parseFloat(whatIfForm.education_expenditure),
+        // Auto-convert monthly inputs to annual for the model
+        total_food_expenditure: parseFloat(whatIfForm.total_food_expenditure) * 12,
+        education_expenditure: parseFloat(whatIfForm.education_expenditure) * 12,
         house_floor_area: parseFloat(whatIfForm.house_floor_area),
         number_of_appliances: parseInt(whatIfForm.number_of_appliances)
       });
@@ -124,14 +126,14 @@ function App() {
           </select>
         </div>
         <div>
-          <label className="block mb-2 font-semibold text-blue-800">Total Food Expenditure</label>
+          <label className="block mb-2 font-semibold text-blue-800">Total Food Expenditure (monthly)</label>
           <input type="number" name="total_food_expenditure" value={form.total_food_expenditure} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
-          <p className="text-xs text-blue-700 mt-1">Monthly spending on food and groceries for the household.</p>
+          <p className="text-xs text-blue-700 mt-1">Monthly spending on food and groceries. We’ll convert to yearly for the model.</p>
         </div>
         <div>
-          <label className="block mb-2 font-semibold text-blue-800">Education Expenditure</label>
+          <label className="block mb-2 font-semibold text-blue-800">Education Expenditure (monthly)</label>
           <input type="number" name="education_expenditure" value={form.education_expenditure} onChange={handleChange} className="w-full border border-blue-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 outline-none bg-white" required />
-          <p className="text-xs text-blue-700 mt-1">Monthly costs for tuition, fees, books and other school needs.</p>
+          <p className="text-xs text-blue-700 mt-1">Monthly costs for tuition, fees, books and other school needs. We’ll convert to yearly for the model.</p>
         </div>
         <div>
           <label className="block mb-2 font-semibold text-blue-800">House Floor Area (sqm)</label>
@@ -150,8 +152,9 @@ function App() {
       </form>
       {result && (
         <div className="mt-8 bg-white/80 border border-blue-100 p-8 rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col items-center animate-fade-in">
-          <h2 className="text-2xl font-extrabold mb-4 text-blue-800">Predicted Income:</h2>
-          <div className="text-3xl font-bold text-green-600 mb-2">₱{result.predicted_income.toLocaleString()}</div>
+          <h2 className="text-2xl font-extrabold mb-1 text-blue-800">Predicted Income (yearly):</h2>
+          <div className="text-3xl font-bold text-green-600">₱{result.predicted_income.toLocaleString()}</div>
+          <div className="text-sm text-blue-800 mb-2">≈ ₱{Math.round(result.predicted_income/12).toLocaleString()} per month</div>
           {typeof result.prediction_std === "number" && (
             <div className="text-sm text-blue-800 mb-4">≈ ± ₱{Math.round((result.prediction_std || 0)).toLocaleString()} (uncertainty)</div>
           )}
@@ -216,12 +219,12 @@ function App() {
             <h4 className="font-semibold text-blue-700 mb-3">What if I change the inputs?</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-blue-800">Total Food Expenditure</label>
+                <label className="block text-sm font-medium text-blue-800">Total Food Expenditure (monthly)</label>
                 <input type="range" min="0" max="100000" step="500" name="total_food_expenditure" value={whatIfForm?.total_food_expenditure || 0} onChange={handleWhatIfChange} className="w-full" />
                 <div className="text-xs text-blue-700">₱{Number(whatIfForm?.total_food_expenditure || 0).toLocaleString()}</div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-blue-800">Education Expenditure</label>
+                <label className="block text-sm font-medium text-blue-800">Education Expenditure (monthly)</label>
                 <input type="range" min="0" max="50000" step="250" name="education_expenditure" value={whatIfForm?.education_expenditure || 0} onChange={handleWhatIfChange} className="w-full" />
                 <div className="text-xs text-blue-700">₱{Number(whatIfForm?.education_expenditure || 0).toLocaleString()}</div>
               </div>

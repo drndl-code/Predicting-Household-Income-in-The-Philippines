@@ -2,6 +2,7 @@
   "dataset_name": "Family Income and Expenditure Survey (FIES)",
   "dataset_source": "https://www.kaggle.com/datasets/grosvenpaul/family-income-and-expenditure",
   "target": "Total Household Income",
+  "target_units": "PHP/year",
   "rows": 41544,
   "features_used": [
     "Region",
@@ -10,6 +11,13 @@
     "house_floor_area",
     "number_of_appliances"
   ],
+  "feature_units": {
+    "Region": "category",
+    "Total Food Expenditure": "PHP/year",
+    "Education Expenditure": "PHP/year",
+    "house_floor_area": "sqm",
+    "number_of_appliances": "count"
+  },
   "model": {
     "type": "RandomForestRegressor",
     "params": {
@@ -24,7 +32,7 @@
     "mae": 74771.79796407456,
     "test_size": 0.3
   },
-  "training_time_utc": "2025-10-28T13:06:45.009341Z",
+  "training_time_utc": "2025-10-28T13:23:17.809607Z",
   "top_feature_importances": [
     {
       "name": "num__number_of_appliances",

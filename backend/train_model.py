@@ -127,8 +127,16 @@ summary = {
     "dataset_name": "Family Income and Expenditure Survey (FIES)",
     "dataset_source": "https://www.kaggle.com/datasets/grosvenpaul/family-income-and-expenditure",
     "target": target_col,
+    "target_units": "PHP/year",
     "rows": int(len(df_small)),
     "features_used": features_cat + features_num,
+    "feature_units": {
+        "Region": "category",
+        "Total Food Expenditure": "PHP/year",
+        "Education Expenditure": "PHP/year",
+        "house_floor_area": "sqm",
+        "number_of_appliances": "count"
+    },
     "model": {
         "type": "RandomForestRegressor",
         "params": {
