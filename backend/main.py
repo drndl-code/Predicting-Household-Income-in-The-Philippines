@@ -277,10 +277,25 @@ def predict_income(data: PredictRequest):
                 top_features = ["Region", "Total Food Expenditure", "Education Expenditure"]
             pred_std = None
 
-        # Calculate confidence percentage
+        # Calculate confidence percentage with stabilization using RMSE and a scale constant
         confidence_percent = None
-        if pred_std is not None and pred != 0:
-            confidence_percent = max(0.0, min(100.0, 100.0 * (1.0 - (abs(pred_std) / abs(pred)))))
+        try:
+            rmse = None
+            try:
+                with open(os.path.join("model", "summary.json"), "r", encoding="utf-8") as f:
+                    summ = json.load(f)
+                    rmse = float(summ.get("metrics", {}).get("rmse"))
+            except Exception:
+                rmse = None
+            if pred_std is not None:
+                std_eff = float(pred_std)
+                if rmse is not None:
+                    std_eff = min(std_eff, rmse)
+                k = 50000.0  # stabilizer constant to avoid overly penalizing small predictions
+                denom = abs(pred) + k
+                confidence_percent = max(0.0, min(100.0, 100.0 * (1.0 / (1.0 + (std_eff / denom)))))
+        except Exception:
+            confidence_percent = None
         return PredictResponse(
             predicted_income=pred,
             important_features=top_features,

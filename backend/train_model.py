@@ -120,9 +120,15 @@ preprocessor = ColumnTransformer(
 
 # Benchmarking models
 models = {
-    "RandomForest": RandomForestRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1),
-    "XGBoost": XGBRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1, verbosity=0),
-    "LightGBM": LGBMRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1)
+    "RandomForest": RandomForestRegressor(
+        n_estimators=200,
+        max_depth=8,
+        min_samples_leaf=5,
+        random_state=42,
+        n_jobs=-1,
+    ),
+    "XGBoost": XGBRegressor(n_estimators=60, max_depth=8, random_state=42, n_jobs=-1, verbosity=0),
+    "LightGBM": LGBMRegressor(n_estimators=60, max_depth=8, random_state=42, n_jobs=-1)
 }
 
 results = {}
@@ -193,9 +199,10 @@ summary = {
     "model": {
         "type": "RandomForestRegressor",
         "params": {
-            "n_estimators": pipeline.named_steps["model"].n_estimators,
-            "max_depth": pipeline.named_steps["model"].max_depth,
-            "random_state": pipeline.named_steps["model"].random_state,
+            "n_estimators": getattr(pipeline.named_steps["model"], "n_estimators", None),
+            "max_depth": getattr(pipeline.named_steps["model"], "max_depth", None),
+            "min_samples_leaf": getattr(pipeline.named_steps["model"], "min_samples_leaf", None),
+            "random_state": getattr(pipeline.named_steps["model"], "random_state", None),
         },
     },
     "metrics": {
