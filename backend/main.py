@@ -156,6 +156,34 @@ def predict_income(data: PredictRequest):
             raise ValueError(f"columns are missing: {missing}")
 
         input_df = pd.DataFrame([model_input])
+        # Compute engineered features expected by the trained pipeline.
+        # Safe fallbacks ensure numeric values even if some context is missing.
+        try:
+            members = 4.0  # default household size when not provided by UI
+            tfood = float(input_df.loc[0, "Total Food Expenditure"]) if "Total Food Expenditure" in input_df.columns else 0.0
+            tedu = float(input_df.loc[0, "Education Expenditure"]) if "Education Expenditure" in input_df.columns else 0.0
+            area = float(input_df.loc[0, "house_floor_area"]) if "house_floor_area" in input_df.columns else 0.0
+            apps = float(input_df.loc[0, "number_of_appliances"]) if "number_of_appliances" in input_df.columns else 0.0
+
+            # Per-capita features (use default members when unavailable)
+            input_df["food_exp_per_capita"] = [tfood / members if members else 0.0]
+            input_df["edu_exp_per_capita"] = [tedu / members if members else 0.0]
+
+            # Density and interaction/ratio features
+            input_df["appliances_per_sqm"] = [apps / area if area else 0.0]
+            input_df["food_edu_interaction"] = [tfood * tedu]
+            input_df["food_to_edu_ratio"] = [tfood / tedu if tedu else 0.0]
+        except Exception:
+            # If anything goes wrong, ensure the columns exist with zeros to prevent ColumnTransformer errors
+            for c in [
+                "food_exp_per_capita",
+                "edu_exp_per_capita",
+                "appliances_per_sqm",
+                "food_edu_interaction",
+                "food_to_edu_ratio",
+            ]:
+                if c not in input_df.columns:
+                    input_df[c] = [0.0]
         print("Received input_df:")
         print(input_df)
         if pipeline is not None:
