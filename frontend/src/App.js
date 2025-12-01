@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import pkg from "../package.json";
 import axios from "axios";
 import { Bar } from "react-chartjs-2";
 import {
@@ -96,11 +97,28 @@ function App() {
     setLoading(false);
   };
 
+  // Friendly display names for engineered features
+  const prettyName = useMemo(() => {
+    const map = new Map([
+      ["Food Exp Per Capita", "Food Expenditure Per Capita"],
+      ["Edu Exp Per Capita", "Education Expenditure Per Capita"],
+      ["Appliances Per Sqm", "Appliances Per Square Meter"],
+      ["Appliances Per Sqm", "Appliances Per Square Meter"],
+      ["Food Edu Interaction", "Food × Education Interaction"],
+      ["Food To Edu Ratio", "Food to Education Ratio"],
+      ["House Floor Area", "House Floor Area"],
+      ["Number Of Appliances", "Number of Appliances"],
+      ["Total Food Expenditure", "Total Food Expenditure"],
+      ["Education Expenditure", "Education Expenditure"],
+    ]);
+    return (s) => map.get(s) || s;
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 via-white to-blue-400 p-4">
       <h1 className="text-4xl font-extrabold mb-2 text-center text-blue-900 drop-shadow-lg tracking-tight">Predicting Household Income in the Philippines</h1>
       <div className="mb-6">
-        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">Explainability v1</span>
+        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">v{pkg.version}</span>
       </div>
       <form onSubmit={handleSubmit} className="backdrop-blur-md bg-white/70 border border-blue-100 p-8 rounded-2xl shadow-2xl w-full max-w-lg space-y-6">
         <div>
@@ -173,7 +191,7 @@ function App() {
           <div className="w-full md:w-3/4">
             <Bar
               data={{
-                labels: result.important_features,
+                labels: result.important_features.map(prettyName),
                 datasets: [
                   {
                     label: "Feature Importance (relative)",
@@ -217,7 +235,7 @@ function App() {
                 const levelColor = level === "High" ? "bg-green-100 text-green-800" : level === "Medium" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800";
                 return (
                   <li key={name} className="flex items-center justify-between bg-white/70 border border-blue-100 rounded-lg px-3 py-2">
-                    <span>{name}</span>
+                    <span>{prettyName(name)}</span>
                     <span className={`text-xs px-2 py-1 rounded ${levelColor}`}>{level} impact</span>
                   </li>
                 );
