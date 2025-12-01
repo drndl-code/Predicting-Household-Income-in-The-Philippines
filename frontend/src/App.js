@@ -163,6 +163,12 @@ function App() {
               </div>
             </div>
           )}
+          {typeof result.confidence_percent === "number" && (
+            <div className="mb-4 text-center">
+              <div className="text-sm text-blue-800">Confidence: <span className="font-bold text-green-700">{result.confidence_percent.toFixed(1)}%</span></div>
+              <div className="text-xs text-blue-700/90 mt-1">Higher confidence means the model is more certain about this prediction.</div>
+            </div>
+          )}
           <h3 className="font-semibold mb-3 text-blue-700">Top Drivers</h3>
           <div className="w-full md:w-3/4">
             <Bar

@@ -9,7 +9,11 @@
     "Total Food Expenditure",
     "Education Expenditure",
     "house_floor_area",
-    "number_of_appliances"
+    "number_of_appliances",
+    "food_exp_per_capita",
+    "edu_exp_per_capita",
+    "food_edu_interaction",
+    "food_to_edu_ratio"
   ],
   "feature_units": {
     "Region": "category",
@@ -27,32 +31,32 @@
     }
   },
   "metrics": {
-    "r2": 0.6089704206283135,
-    "rmse": 172704.88665944483,
-    "mae": 74771.79796407456,
+    "r2": 0.6196727550306202,
+    "rmse": 170325.05560257926,
+    "mae": 74435.54942646476,
     "test_size": 0.3
   },
-  "training_time_utc": "2025-10-28T13:23:17.809607Z",
+  "training_time_utc": "2025-12-01T11:37:57.608349Z",
   "top_feature_importances": [
     {
       "name": "num__number_of_appliances",
-      "importance": 0.4737765358029044
+      "importance": 0.4596804656139642
     },
     {
       "name": "num__Total Food Expenditure",
-      "importance": 0.3203504323021154
+      "importance": 0.2861441973621401
     },
     {
-      "name": "num__Education Expenditure",
-      "importance": 0.07233595640803667
+      "name": "num__food_exp_per_capita",
+      "importance": 0.05223092510614381
     },
     {
       "name": "num__house_floor_area",
-      "importance": 0.060195894486388034
+      "importance": 0.044085198436359926
     },
     {
-      "name": "cat__Region_VI - Western Visayas",
-      "importance": 0.02497264129494496
+      "name": "num__food_edu_interaction",
+      "importance": 0.029785548064741495
     }
   ],
   "preview_columns": [
@@ -61,6 +65,10 @@
     "Education Expenditure",
     "house_floor_area",
     "number_of_appliances",
+    "food_exp_per_capita",
+    "edu_exp_per_capita",
+    "food_edu_interaction",
+    "food_to_edu_ratio",
     "Total Household Income"
   ],
   "preview_rows": [
@@ -70,6 +78,10 @@
       "Education Expenditure": 36200,
       "house_floor_area": 80,
       "number_of_appliances": 7,
+      "food_exp_per_capita": 29462.0,
+      "edu_exp_per_capita": 9050.0,
+      "food_edu_interaction": 4266097600,
+      "food_to_edu_ratio": 3.2554696132596685,
       "Total Household Income": 480332
     },
     {
@@ -78,6 +90,10 @@
       "Education Expenditure": 29300,
       "house_floor_area": 42,
       "number_of_appliances": 8,
+      "food_exp_per_capita": 22588.666666666668,
+      "edu_exp_per_capita": 9766.666666666666,
+      "food_edu_interaction": 1985543800,
+      "food_to_edu_ratio": 2.3128327645051194,
       "Total Household Income": 198235
     },
     {
@@ -86,6 +102,10 @@
       "Education Expenditure": 425,
       "house_floor_area": 35,
       "number_of_appliances": 0,
+      "food_exp_per_capita": 10268.166666666666,
+      "edu_exp_per_capita": 70.83333333333333,
+      "food_edu_interaction": 26183825,
+      "food_to_edu_ratio": 144.96235294117648,
       "Total Household Income": 82785
     },
     {
@@ -94,6 +114,10 @@
       "Education Expenditure": 300,
       "house_floor_area": 30,
       "number_of_appliances": 2,
+      "food_exp_per_capita": 26063.0,
+      "edu_exp_per_capita": 100.0,
+      "food_edu_interaction": 23456700,
+      "food_to_edu_ratio": 260.63,
       "Total Household Income": 107589
     },
     {
@@ -102,6 +126,10 @@
       "Education Expenditure": 0,
       "house_floor_area": 54,
       "number_of_appliances": 5,
+      "food_exp_per_capita": 23656.25,
+      "edu_exp_per_capita": 0.0,
+      "food_edu_interaction": 0,
+      "food_to_edu_ratio": 40.19806397306397,
       "Total Household Income": 189322
     }
   ]

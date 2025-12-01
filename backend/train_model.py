@@ -6,15 +6,20 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+
 import joblib
 import os
 import json
 from datetime import datetime
+from sklearn.model_selection import cross_val_score
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
 
 # Load dataset
 DATA_PATH = "Family-Income-and-Expenditure.csv"
 df = pd.read_csv(DATA_PATH)
 
+import warnings
 # Minimal cleaning on key columns used by UI
 ui_cat = ["Region"]
 ui_num = [
@@ -23,6 +28,24 @@ ui_num = [
     "house_floor_area",  # may not exist; we'll handle below
     "number_of_appliances"  # may not exist; we'll handle below
 ]
+
+# Additional engineered features
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    # Per capita features
+    if "Total Number of Family members" in df.columns:
+        df["food_exp_per_capita"] = df["Total Food Expenditure"] / df["Total Number of Family members"].replace(0, np.nan)
+        df["edu_exp_per_capita"] = df["Education Expenditure"] / df["Total Number of Family members"].replace(0, np.nan)
+    # Appliances per sqm
+    if "number_of_appliances" in df.columns and "house_floor_area" in df.columns:
+        df["appliances_per_sqm"] = df["number_of_appliances"] / df["house_floor_area"].replace(0, np.nan)
+    # Interaction: food x education
+    if "Total Food Expenditure" in df.columns and "Education Expenditure" in df.columns:
+        df["food_edu_interaction"] = df["Total Food Expenditure"] * df["Education Expenditure"]
+    # Ratio: food/education
+    if "Total Food Expenditure" in df.columns and "Education Expenditure" in df.columns:
+        df["food_to_edu_ratio"] = df["Total Food Expenditure"] / df["Education Expenditure"].replace(0, np.nan)
+
 
 # Try to derive house_floor_area and number_of_appliances if not present
 if "house_floor_area" not in df.columns:
@@ -57,9 +80,17 @@ if "number_of_appliances" not in df.columns:
         df[appliance_cols] = df[appliance_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
         df["number_of_appliances"] = df[appliance_cols].sum(axis=1)
 
-# Keep only training target and UI-driven inputs (drop missing ui fields later by fillna)
+
+# Add engineered features to keep_cols if present
+engineered_features = [
+    "food_exp_per_capita",
+    "edu_exp_per_capita",
+    "appliances_per_sqm",
+    "food_edu_interaction",
+    "food_to_edu_ratio"
+]
 target_col = "Total Household Income"
-keep_cols = [c for c in ui_cat + ui_num if c in df.columns] + [target_col]
+keep_cols = [c for c in ui_cat + ui_num if c in df.columns] + [f for f in engineered_features if f in df.columns] + [target_col]
 df_small = df[keep_cols].copy()
 
 # Handle missing values
@@ -69,9 +100,10 @@ for col in df_small.columns:
     else:
         df_small[col] = df_small[col].fillna(df_small[col].median())
 
+
 # Define features actually used
 features_cat = [c for c in ui_cat if c in df_small.columns]
-features_num = [c for c in ui_num if c in df_small.columns]
+features_num = [c for c in ui_num + [f for f in engineered_features if f in df_small.columns] if c in df_small.columns]
 
 X = df_small[features_cat + features_num]
 y = df_small[target_col]
@@ -85,24 +117,45 @@ preprocessor = ColumnTransformer(
     remainder="drop",
 )
 
-model = RandomForestRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1)
+
+# Benchmarking models
+models = {
+    "RandomForest": RandomForestRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1),
+    "XGBoost": XGBRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1, verbosity=0),
+    "LightGBM": LGBMRegressor(n_estimators=40, max_depth=10, random_state=42, n_jobs=-1)
+}
+
+results = {}
+for name, model in models.items():
+    pipe = Pipeline(steps=[
+        ("preprocessor", preprocessor),
+        ("model", model)
+    ])
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    pipe.fit(X_train, y_train)
+    pred = pipe.predict(X_test)
+    r2 = r2_score(y_test, pred)
+    rmse = np.sqrt(mean_squared_error(y_test, pred))
+    mae = mean_absolute_error(y_test, pred)
+    # Cross-validation (5-fold)
+    cv_r2 = cross_val_score(pipe, X, y, cv=5, scoring="r2").mean()
+    results[name] = {
+        "r2": r2,
+        "rmse": rmse,
+        "mae": mae,
+        "cv_r2": cv_r2
+    }
+    print(f"{name} R2: {r2:.3f} | RMSE: {rmse:.2f} | MAE: {mae:.2f} | CV R2: {cv_r2:.3f}")
+
+# Use the best model (highest CV R2)
+best_model_name = max(results, key=lambda k: results[k]["cv_r2"])
+print(f"\nBest model: {best_model_name}")
+best_model = models[best_model_name]
 pipeline = Pipeline(steps=[
     ("preprocessor", preprocessor),
-    ("model", model)
+    ("model", best_model)
 ])
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
 pipeline.fit(X_train, y_train)
-
-# Evaluate
-def print_metrics(pipe, X, y, name):
-    pred = pipe.predict(X)
-    print(f"{name} R2: {r2_score(y, pred):.3f}")
-    print(f"{name} RMSE: {np.sqrt(mean_squared_error(y, pred)):.2f}")
-    print(f"{name} MAE: {mean_absolute_error(y, pred):.2f}")
-
-print_metrics(pipeline, X_test, y_test, "RF Pipeline")
 
 # Save pipeline and feature names after preprocessing
 os.makedirs("model", exist_ok=True)

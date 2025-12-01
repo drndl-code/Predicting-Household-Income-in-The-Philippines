@@ -56,6 +56,7 @@ class PredictResponse(BaseModel):
     important_features: List[str]
     feature_importances: Optional[List[float]] = None  # relative importances aligned with important_features
     prediction_std: Optional[float] = None  # per-instance std across trees (if available)
+    confidence_percent: Optional[float] = None  # confidence as a percentage
 
 @app.on_event("startup")
 def load_model():
@@ -248,11 +249,16 @@ def predict_income(data: PredictRequest):
                 top_features = ["Region", "Total Food Expenditure", "Education Expenditure"]
             pred_std = None
 
+        # Calculate confidence percentage
+        confidence_percent = None
+        if pred_std is not None and pred != 0:
+            confidence_percent = max(0.0, min(100.0, 100.0 * (1.0 - (abs(pred_std) / abs(pred)))))
         return PredictResponse(
             predicted_income=pred,
             important_features=top_features,
             feature_importances=top_scores,
             prediction_std=pred_std,
+            confidence_percent=confidence_percent,
         )
     except Exception as e:
         print("Exception in /predict:", e)
